@@ -46,9 +46,16 @@ jobs:
           git remote add upstream "https://github.com/${UPSTREAM_REPOSITORY}.git"
           git fetch --no-tags upstream "$TARGET_DEFAULT_BRANCH"
 
-          if git merge-base --is-ancestor "upstream/$TARGET_DEFAULT_BRANCH" "$TARGET_DEFAULT_BRANCH"; then
+          read -r local_only upstream_only < <(git rev-list --left-right --count "$TARGET_DEFAULT_BRANCH...upstream/$TARGET_DEFAULT_BRANCH")
+
+          if [ "$upstream_only" -eq 0 ]; then
             echo "Already up to date."
             exit 0
+          fi
+
+          if [ "$local_only" -ne 0 ]; then
+            echo "::error::Default branch has local commits not in upstream. Manual sync is required."
+            exit 1
           fi
 
           git checkout "$TARGET_DEFAULT_BRANCH"
