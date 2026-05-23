@@ -49,7 +49,7 @@ jobs:
 
           askpass_file="$workdir/git-askpass.sh"
           cat > "$askpass_file" <<'EOF'
-          #!/usr/bin/env sh
+          #!/usr/bin/env bash
           case "$1" in
             *Username*) echo "x-access-token" ;;
             *Password*) echo "$GIT_ACCESS_TOKEN" ;;
@@ -70,9 +70,7 @@ jobs:
           git remote add upstream "https://github.com/${UPSTREAM_REPOSITORY}.git"
           git fetch --no-tags upstream "$TARGET_DEFAULT_BRANCH"
 
-          set -- $(git rev-list --left-right --count "$TARGET_DEFAULT_BRANCH...upstream/$TARGET_DEFAULT_BRANCH")
-          local_only="$1"
-          upstream_only="$2"
+          IFS=$' \t' read -r local_only upstream_only <<< "$(git rev-list --left-right --count "$TARGET_DEFAULT_BRANCH...upstream/$TARGET_DEFAULT_BRANCH")"
 
           if [ "$upstream_only" -eq 0 ]; then
             echo "Already up to date."
