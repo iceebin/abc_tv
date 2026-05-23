@@ -1,0 +1,56 @@
+name: Sync upstream repository
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate upstream configuration
+        env:
+          UPSTREAM_REPOSITORY: ${{ vars.UPSTREAM_REPOSITORY }}
+        run: |
+          if [ -z "$UPSTREAM_REPOSITORY" ]; then
+            echo "::error::Missing repository variable UPSTREAM_REPOSITORY (owner/repo)."
+            exit 1
+          fi
+
+      - name: Sync default branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_REPOSITORY: ${{ github.repository }}
+          TARGET_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          UPSTREAM_REPOSITORY: ${{ vars.UPSTREAM_REPOSITORY }}
+        run: |
+          set -euo pipefail
+
+          workdir="$(mktemp -d)"
+          trap 'rm -rf "$workdir"' EXIT
+
+          git -c init.defaultBranch="$TARGET_DEFAULT_BRANCH" clone --no-tags "https://x-access-token:${GITHUB_TOKEN}@github.com/${TARGET_REPOSITORY}.git" "$workdir/repo"
+          cd "$workdir/repo"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git remote add upstream "https://github.com/${UPSTREAM_REPOSITORY}.git"
+          git fetch --no-tags upstream "$TARGET_DEFAULT_BRANCH"
+
+          if git merge-base --is-ancestor "upstream/$TARGET_DEFAULT_BRANCH" "$TARGET_DEFAULT_BRANCH"; then
+            echo "Already up to date."
+            exit 0
+          fi
+
+          git checkout "$TARGET_DEFAULT_BRANCH"
+          git merge --ff-only "upstream/$TARGET_DEFAULT_BRANCH"
+          git push origin "HEAD:$TARGET_DEFAULT_BRANCH"

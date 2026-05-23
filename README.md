@@ -1,4 +1,19 @@
 
+## 自动同步上游仓库（GitHub Actions）
+
+仓库已新增自动同步工作流：`.github/workflows/sync-upstream.yml`。
+
+使用前请先在仓库 **Settings → Secrets and variables → Actions → Variables** 中添加：
+
+- `UPSTREAM_REPOSITORY`：上游仓库地址，格式为 `owner/repo`
+
+工作流支持两种触发方式：
+
+- 定时同步（每 6 小时）
+- 手动触发（Actions 页面中运行 `Sync upstream repository`）
+
+默认同步当前仓库默认分支，并使用 **fast-forward only** 策略，避免自动产生冲突合并提交。
+
 ## Mitv 原代码库升级（无需重新部署），变量值已更换，最新变量值公众号获取，建议使用DIYP ku9 OK影视等等能自动刷新接口的软件
 
 ## 聚合搜索 脚本升级 优化搜索速度  0516  0:25
