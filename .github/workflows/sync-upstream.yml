@@ -48,13 +48,12 @@ jobs:
           fi
 
           askpass_file="$workdir/git-askpass.sh"
-          cat > "$askpass_file" <<'EOF'
-          #!/usr/bin/env bash
-          case "$1" in
-            *Username*) echo "x-access-token" ;;
-            *Password*) echo "$GIT_ACCESS_TOKEN" ;;
-          esac
-          EOF
+          printf '%s\n' \
+            '#!/usr/bin/env bash' \
+            'case "$1" in' \
+            '  *Username*) echo "x-access-token" ;;' \
+            '  *Password*) echo "$GIT_ACCESS_TOKEN" ;;' \
+            'esac' > "$askpass_file"
           chmod 700 "$askpass_file"
 
           export GIT_ASKPASS="$askpass_file"
