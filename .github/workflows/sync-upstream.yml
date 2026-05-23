@@ -70,7 +70,9 @@ jobs:
           git remote add upstream "https://github.com/${UPSTREAM_REPOSITORY}.git"
           git fetch --no-tags upstream "$TARGET_DEFAULT_BRANCH"
 
-          IFS=$' \t' read -r local_only upstream_only <<< "$(git rev-list --left-right --count "$TARGET_DEFAULT_BRANCH...upstream/$TARGET_DEFAULT_BRANCH")"
+          counts="$(git rev-list --left-right --count "$TARGET_DEFAULT_BRANCH...upstream/$TARGET_DEFAULT_BRANCH")"
+          local_only="$(printf '%s' "$counts" | awk '{print $1}')"
+          upstream_only="$(printf '%s' "$counts" | awk '{print $2}')"
 
           if [ "$upstream_only" -eq 0 ]; then
             echo "Already up to date."
